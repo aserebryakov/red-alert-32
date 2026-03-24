@@ -1,16 +1,24 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <CppComponentsLibrary.h>
 
 const char WIFI_SSID[] = "wifi";
 const char WIFI_PASSWORD[] = "pwd";
 
 String HOST_NAME   = "https://www.oref.org.il";
-// String PATH_NAME   = "/warningMessages/alert/Alerts.json";
-String PATH_NAME   = "/warningMessages/alert/History/AlertsHistory.json";
+String PATH_NAME   = "/warningMessages/alert/Alerts.json";
+// String PATH_NAME   = "/warningMessages/alert/History/AlertsHistory.json";
+
+HwApiImpl hw_api;
+
+DigitalLed yellow_led{18, hw_api};
+DigitalLed green_led{19, hw_api};
 
 void setup() {
     Serial.begin(9600);
+    yellow_led.begin();
+    green_led.begin();
 
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     Serial.println("Connecting");
@@ -24,7 +32,7 @@ void setup() {
 }
 
 void loop() {
-    sleep(10);
+    sleep(1);
 
     HTTPClient http;
 
@@ -37,13 +45,26 @@ void loop() {
         // file found at server
         if (httpCode == HTTP_CODE_OK) {
             String payload = http.getString();
-            // Serial.println(payload);
+
+            const auto start = payload.indexOf('{');
+            if (start > 0) {
+                payload = payload.substring(start);
+            }
 
             JsonDocument doc;
             deserializeJson(doc, payload);
+            Serial.print(payload);
             String output;
             serializeJson(doc, output);
             Serial.print(output);
+            if (doc.isNull()) {
+                yellow_led.turnOff();
+                green_led.turnOn();
+            }
+            else {
+                yellow_led.turnOn();
+                green_led.turnOff();
+            }
         } else {
             // HTTP header has been send and Server response header has been handled
             Serial.printf("[HTTP] GET... code: %d\n", httpCode);
