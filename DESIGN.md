@@ -33,18 +33,38 @@ sequenceDiagram
 
 ## State Machine
 
+Event types:
+ * `NoAlerts` - `Alerts.json` is empty
+ * `RemoteAlert` - `Alerts.json` is not empty but doesn't have information about the specified region
+ * `EarlyNotification` - `Alerts.json` contains early alert notification
+ * `RedAlert` - `Alerts.json` contains Red Alert notification in specified region
+ * `EventFinished` - `Alerts.json` contains Event Finished notification
+ * `Error` - `Alerts.json` can't be read
+
 ```mermaid
 stateDiagram
     [*] --> Initialization
     Initialization --> NoAlerts: Wifi Connected
-    NoAlerts --> NoAlerts : Alerts.json is empty
-    NoAlerts --> YellowAlert : Alerts.json is not empty
-    YellowAlert --> EarlyNotification : Early notification
-    YellowAlert --> RedAlert : Red alert
-    NoAlerts --> EarlyNotification : Early notification
-    EarlyNotification --> RedAlert : Red alert
-    NoAlerts --> RedAlert : Red alert
-    RedAlert --> NoAlerts: Event finished
-    EarlyNotification --> NoAlerts: Event finished
-    YellowAlert --> NoAlerts : Alerts.json is empty
+    NoAlerts --> NoAlerts : NoAlerts
+    NoAlerts --> YellowAlert : RemoteAlert
+    YellowAlert --> EarlyNotification : EarlyNotification
+    YellowAlert --> RedAlert : RedAlert
+    NoAlerts --> EarlyNotification : EarlyNotification
+    EarlyNotification --> RedAlert : RedAlert
+    NoAlerts --> RedAlert : RedAlert
+    RedAlert --> NoAlerts: EventFinished
+    EarlyNotification --> NoAlerts: EventFinished
+    YellowAlert --> NoAlerts : NoAlerts
+```
+
+## Classes
+
+```mermaid
+classDiagram
+    class RedAlert {
+        - state : RedAlertStateMachine
+        - scheduler : TaskScheduler
+        + begin()
+        + loop(tick)
+    }
 ```
