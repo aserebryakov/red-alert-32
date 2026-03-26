@@ -1,6 +1,7 @@
 #include <DIYables_ESP32_WebServer.h>
 #include <Arduino.h>
 #include "RedAlertManager.h"
+#include <EEPROM.h>
 
 DIYables_ESP32_WebServer server;
 RedAlertManager red_alert_manager;
@@ -59,15 +60,24 @@ button {
 
 void handleHome(WiFiClient& client, const String& method, const String& request, const QueryParams& params, const String& jsonData) {
     Serial.println(method);
-    Serial.println(request);
+    Serial.println(jsonData);
+    Serial.println(EEPROM.writeString(0, jsonData));
+    Serial.println(EEPROM.read(0));
+    EEPROM.commit();
     server.sendResponse(client, HOME_PAGE);
 }
 
 void setup() {
     Serial.begin(9600);
+    EEPROM.begin(1024);
     red_alert_manager.begin();
     server.addRoute("/", handleHome);
     server.begin();
+
+    Serial.println("Read from EEPROM");
+    const auto read = EEPROM.readString(0);
+    Serial.println(read);
+    Serial.println(EEPROM.read(0));
 
     Serial.println("\n=== Web Server Ready! ===");
     Serial.print("Visit: http://");
@@ -76,5 +86,9 @@ void setup() {
 
 void loop() {
     server.handleClient();
+    Serial.println("Read from EEPROM");
+    const auto read = EEPROM.readString(0);
+    Serial.println(read);
+    Serial.println(EEPROM.read(0));
     red_alert_manager.loop();
 }
