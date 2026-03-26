@@ -68,3 +68,18 @@ classDiagram
         + loop(tick)
     }
 ```
+
+## Sequences
+
+### Initialization
+
+```mermaid
+sequenceDiagram
+    participant RedAlert
+    participant Wifi
+    participant TaskScheduler
+    
+    RedAlert ->> Wifi : connect
+    note over RedAlert: wait for connection<br>and blink green led
+    RedAlert ->> TaskScheduler : add alerts query task
+```
