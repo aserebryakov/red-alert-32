@@ -63,6 +63,7 @@ void RedAlertManager::loop() {
     deserializeJson(doc, payload);
     String output;
     serializeJson(doc, output);
+
     if (doc.isNull()) {
         yellow_led.turnOff();
         green_led.turnOn();
