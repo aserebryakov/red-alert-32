@@ -11,6 +11,7 @@ void RedAlertManager::begin() {
     Serial.begin(9600);
     yellow_led.begin();
     green_led.begin();
+    red_led.begin();
 
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     Serial.println("Connecting");
@@ -18,8 +19,10 @@ void RedAlertManager::begin() {
     Serial.println("Password: " + String(WIFI_PASSWORD));
     while (WiFi.status() != WL_CONNECTED) {
         delay(250);
+        red_led.turnOn();
         green_led.turnOn();
         delay(250);
+        red_led.turnOff();
         green_led.turnOff();
         Serial.print(".");
     }
@@ -63,11 +66,17 @@ void RedAlertManager::loop() {
     if (doc.isNull()) {
         yellow_led.turnOff();
         green_led.turnOn();
-    }
-    else {
+        red_led.turnOff();
+    } else {
         yellow_led.turnOn();
         green_led.turnOff();
     }
+
+    if (doc["cat"].as<String>() == "1") {
+        Serial.println(doc["cat"].as<String>());
+        red_led.turnOn();
+    }
+
     Serial.print(output);
 
     http.end();
