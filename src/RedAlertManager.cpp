@@ -4,10 +4,6 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-
-const char WIFI_SSID[] = "xxx";
-const char WIFI_PASSWORD[] = "yyy";
-
 String HOST_NAME   = "https://www.oref.org.il";
 String PATH_NAME   = "/warningMessages/alert/Alerts.json";
 
@@ -18,6 +14,8 @@ void RedAlertManager::begin() {
 
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     Serial.println("Connecting");
+    Serial.println("SSID: " + String(WIFI_SSID));
+    Serial.println("Password: " + String(WIFI_PASSWORD));
     while (WiFi.status() != WL_CONNECTED) {
         delay(250);
         green_led.turnOn();
