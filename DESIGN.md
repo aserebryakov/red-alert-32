@@ -36,9 +36,9 @@ sequenceDiagram
 Event types:
  * `NoAlerts` - `Alerts.json` is empty
  * `RemoteAlert` - `Alerts.json` is not empty but doesn't have information about the specified region
- * `EarlyNotification` - `Alerts.json` contains early alert notification
+ * `EarlyWarning` - `Alerts.json` contains early warning notification in specified region
  * `RedAlert` - `Alerts.json` contains Red Alert notification in specified region
- * `EventFinished` - `Alerts.json` contains Event Finished notification
+ * `EventEnded` - `Alerts.json` contains Event Finished notification
  * `Error` - `Alerts.json` can't be read
 
 ```mermaid
@@ -47,13 +47,13 @@ stateDiagram
     Initialization --> NoAlerts: Wifi Connected
     NoAlerts --> NoAlerts : NoAlerts
     NoAlerts --> YellowAlert : RemoteAlert
-    YellowAlert --> EarlyNotification : EarlyNotification
+    YellowAlert --> EarlyWarning : EarlyWarning
     YellowAlert --> RedAlert : RedAlert
-    NoAlerts --> EarlyNotification : EarlyNotification
-    EarlyNotification --> RedAlert : RedAlert
+    NoAlerts --> EarlyWarning : EarlyWarning
+    EarlyWarning --> RedAlert : RedAlert
     NoAlerts --> RedAlert : RedAlert
-    RedAlert --> NoAlerts: EventFinished
-    EarlyNotification --> NoAlerts: EventFinished
+    RedAlert --> NoAlerts: EventEnded
+    EarlyWarning --> NoAlerts: EventEnded
     YellowAlert --> NoAlerts : NoAlerts
 ```
 
