@@ -3,9 +3,15 @@
 #include <Arduino.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <WebServer.h>
 
 String HOST_NAME   = "https://www.oref.org.il";
 String PATH_NAME   = "/warningMessages/alert/Alerts.json";
+
+#ifndef WIFI_SSID
+#define WIFI_SSID "WIFI"
+#define WIFI_PASSWORD "PASSWORD"
+#endif
 
 void RedAlertManager::begin() {
     Serial.begin(9600);
