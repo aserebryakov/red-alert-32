@@ -4,6 +4,8 @@
 #include <Device.h>
 #include <DigitalLed.h>
 #include <HwApiImpl.h>
+#include <WebServerManager.h>
+#include <ConfigurationManager.h>
 
 class RedAlertManager : public Device {
     public:
@@ -19,6 +21,9 @@ class RedAlertManager : public Device {
         DigitalLed green_led{GREEN_LED_PIN, hw_api};
         DigitalLed yellow_led{YELLOW_LED_PIN, hw_api};
         DigitalLed red_led{RED_LED_PIN, hw_api};
+
+        WebServerManager web_server{};
+        ConfigurationManager configuration_manager{};
 };
 
 

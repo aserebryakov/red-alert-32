@@ -8,21 +8,26 @@
 String HOST_NAME   = "https://www.oref.org.il";
 String PATH_NAME   = "/warningMessages/alert/Alerts.json";
 
-#ifndef WIFI_SSID
-#define WIFI_SSID "WIFI"
-#define WIFI_PASSWORD "PASSWORD"
-#endif
-
 void RedAlertManager::begin() {
     Serial.begin(9600);
     yellow_led.begin();
     green_led.begin();
     red_led.begin();
+    configuration_manager.begin();
+    web_server.begin();
 
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    // WiFi.softAP("RED_ALERT_32", "");
+    // WiFi.softAPConfig({192, 168, 1, 42}, {192, 168, 1, 1}, {255, 255, 255, 0});
+    // Serial.println(WiFi.softAPIP());
+    // ESP.restart();
+
+    const auto configuration = configuration_manager.readConfiguration();
+
+    WiFi.begin(configuration.ssid.value(), configuration.password.value_or(""));
     Serial.println("Connecting");
-    Serial.println("SSID: " + String(WIFI_SSID));
-    Serial.println("Password: " + String(WIFI_PASSWORD));
+    Serial.println("SSID: " + String(configuration.ssid.value()));
+    Serial.println("Password: " + String(configuration.password.value_or("")));
+
     while (WiFi.status() != WL_CONNECTED) {
         delay(250);
         red_led.turnOn();
