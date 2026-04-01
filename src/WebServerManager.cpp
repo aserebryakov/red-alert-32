@@ -84,6 +84,10 @@ void WebServerManager::begin() {
     Serial.println(WiFi.localIP());
 }
 
+void WebServerManager::setConfigurationCallback(ConfigurationCallback &&cb) {
+    callback = std::move(cb);
+}
+
 void WebServerManager::loop() {
     server.handleClient();
 }
@@ -95,9 +99,25 @@ void WebServerManager::handleRootGet() {
 
 void WebServerManager::handleRootPost() {
     Serial.println("POST /");
-    for (int i = 0; i < server.args(); i++) {
-        Serial.println(server.argName(i));
-        Serial.println(server.arg(i));
+    Configuration config;
+    bool resetFlag = false;
+
+    if (server.hasArg("SSID")) {
+        config.ssid = server.arg("SSID");
     }
+    if (server.hasArg("Password")) {
+        config.password = server.arg("Password");
+    }
+    if (server.hasArg("City")) {
+        config.cityName = server.arg("City");
+    }
+    if (server.hasArg("Reset")) {
+        resetFlag = (server.arg("Reset") == "on");
+    }
+
     server.send(200, "text/html", SUBMITTED);
+
+    if (callback) {
+        callback(config, resetFlag);
+    }
 }

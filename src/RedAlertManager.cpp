@@ -14,32 +14,61 @@ void RedAlertManager::begin() {
     green_led.begin();
     red_led.begin();
     configuration_manager.begin();
-    web_server.begin();
-
-    // WiFi.softAP("RED_ALERT_32", "");
-    // WiFi.softAPConfig({192, 168, 1, 42}, {192, 168, 1, 1}, {255, 255, 255, 0});
-    // Serial.println(WiFi.softAPIP());
-    // ESP.restart();
 
     const auto configuration = configuration_manager.readConfiguration();
 
-    WiFi.begin(configuration.ssid.value(), configuration.password.value_or(""));
-    Serial.println("Connecting");
-    Serial.println("SSID: " + String(configuration.ssid.value()));
-    Serial.println("Password: " + String(configuration.password.value_or("")));
+    if (configuration.ssid.value_or("") != "") {
+        WiFi.begin(configuration.ssid.value(), configuration.password.value_or(""));
+        Serial.println("Connecting");
+        Serial.println("SSID: " + String(configuration.ssid.value()));
+        Serial.println("Password: " + String(configuration.password.value_or("")));
 
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(250);
-        red_led.turnOn();
-        green_led.turnOn();
-        delay(250);
-        red_led.turnOff();
-        green_led.turnOff();
-        Serial.print(".");
+        int ms_till_reset = 60000;
+        while (WiFi.status() != WL_CONNECTED) {
+            delay(250);
+            red_led.turnOn();
+            green_led.turnOn();
+            delay(250);
+            red_led.turnOff();
+            green_led.turnOff();
+            Serial.print(".");
+
+            ms_till_reset -= 500;
+
+            if (ms_till_reset <= 0) {
+                Serial.print("Resetting to defaults...");
+                configuration_manager.reset();
+                ESP.restart();
+            }
+        }
+
+        Serial.println("");
+        Serial.print("Connected to WiFi network with IP Address: ");
+        Serial.println(WiFi.localIP());
+    } else {
+        WiFi.begin();
+        WiFi.softAP("RED_ALERT_32", "");
+        WiFi.softAPConfig({192, 168, 1, 42}, {192, 168, 1, 1}, {255, 255, 255, 0});
+        Serial.println(WiFi.softAPIP());
     }
-    Serial.println("");
-    Serial.print("Connected to WiFi network with IP Address: ");
-    Serial.println(WiFi.localIP());
+
+    web_server.begin();
+
+    web_server.setConfigurationCallback([this](const Configuration &config, bool reset) {
+        if (reset) {
+            this->configuration_manager.reset();
+        } else {
+            this->configuration_manager.writeConfiguration(config);
+        }
+        ESP.restart();
+    });
+
+    if (configuration.ssid.value_or("") == "") {
+        while (true) {
+            delay(10);
+            web_server.loop();
+        }
+    }
 }
 
 void RedAlertManager::loop() {
