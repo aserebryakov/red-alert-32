@@ -1,7 +1,9 @@
+#if defined(ARDUINO)
 #include <Arduino.h>
+#endif
+
 #include "RedAlertManager.h"
 #include "WebServerManager.h"
-#include <EEPROM.h>
 
 RedAlertManager red_alert_manager;
 WebServerManager web_server_manager;

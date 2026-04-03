@@ -1,8 +1,5 @@
 #include <gtest/gtest.h>
 #include "RedAlertStateMachine.h"
-#include "RedAlertStateMachine.cpp"
-
-using namespace redalert;
 
 class StateMachineTest : public ::testing::Test {
 protected:
@@ -28,7 +25,7 @@ TEST_F(StateMachineTest, InitialState) {
 }
 
 TEST_F(StateMachineTest, InitializationToNoAlerts) {
-    sm->processEvent(WifiConnected{});
+    sm->processEvent(WifiConnectedEvent{});
     EXPECT_TRUE(std::holds_alternative<NoAlerts>(sm->getState()));
     EXPECT_EQ(transitionCount, 1);
     EXPECT_TRUE(std::holds_alternative<Initialization>(lastOldState));
@@ -36,7 +33,7 @@ TEST_F(StateMachineTest, InitializationToNoAlerts) {
 }
 
 TEST_F(StateMachineTest, NoAlertsToYellow) {
-    sm->processEvent(WifiConnected{});
+    sm->processEvent(WifiConnectedEvent{});
     sm->processEvent(RemoteAlertEvent{});
     EXPECT_TRUE(std::holds_alternative<YellowAlert>(sm->getState()));
     EXPECT_EQ(transitionCount, 2);
@@ -45,7 +42,7 @@ TEST_F(StateMachineTest, NoAlertsToYellow) {
 }
 
 TEST_F(StateMachineTest, YellowToNoAlerts) {
-    sm->processEvent(WifiConnected{});
+    sm->processEvent(WifiConnectedEvent{});
     sm->processEvent(RemoteAlertEvent{});
     sm->processEvent(NoAlertsEvent{});
     EXPECT_TRUE(std::holds_alternative<NoAlerts>(sm->getState()));
@@ -55,7 +52,7 @@ TEST_F(StateMachineTest, YellowToNoAlerts) {
 }
 
 TEST_F(StateMachineTest, YellowToEarlyWarning) {
-    sm->processEvent(WifiConnected{});
+    sm->processEvent(WifiConnectedEvent{});
     sm->processEvent(RemoteAlertEvent{});
     sm->processEvent(EarlyWarningEvent{});
     EXPECT_TRUE(std::holds_alternative<EarlyWarning>(sm->getState()));
@@ -65,7 +62,7 @@ TEST_F(StateMachineTest, YellowToEarlyWarning) {
 }
 
 TEST_F(StateMachineTest, YellowToRedAlert) {
-    sm->processEvent(WifiConnected{});
+    sm->processEvent(WifiConnectedEvent{});
     sm->processEvent(RemoteAlertEvent{});
     sm->processEvent(RedAlertEvent{});
     EXPECT_TRUE(std::holds_alternative<RedAlert>(sm->getState()));
@@ -75,7 +72,7 @@ TEST_F(StateMachineTest, YellowToRedAlert) {
 }
 
 TEST_F(StateMachineTest, NoAlertsToEarlyWarning) {
-    sm->processEvent(WifiConnected{});
+    sm->processEvent(WifiConnectedEvent{});
     sm->processEvent(EarlyWarningEvent{});
     EXPECT_TRUE(std::holds_alternative<EarlyWarning>(sm->getState()));
     EXPECT_EQ(transitionCount, 2);
@@ -84,7 +81,7 @@ TEST_F(StateMachineTest, NoAlertsToEarlyWarning) {
 }
 
 TEST_F(StateMachineTest, EarlyWarningToRedAlert) {
-    sm->processEvent(WifiConnected{});
+    sm->processEvent(WifiConnectedEvent{});
     sm->processEvent(EarlyWarningEvent{});
     sm->processEvent(RedAlertEvent{});
     EXPECT_TRUE(std::holds_alternative<RedAlert>(sm->getState()));
@@ -94,7 +91,7 @@ TEST_F(StateMachineTest, EarlyWarningToRedAlert) {
 }
 
 TEST_F(StateMachineTest, NoAlertsToRedAlert) {
-    sm->processEvent(WifiConnected{});
+    sm->processEvent(WifiConnectedEvent{});
     sm->processEvent(RedAlertEvent{});
     EXPECT_TRUE(std::holds_alternative<RedAlert>(sm->getState()));
     EXPECT_EQ(transitionCount, 2);
@@ -103,7 +100,7 @@ TEST_F(StateMachineTest, NoAlertsToRedAlert) {
 }
 
 TEST_F(StateMachineTest, RedAlertToNoAlerts) {
-    sm->processEvent(WifiConnected{});
+    sm->processEvent(WifiConnectedEvent{});
     sm->processEvent(RedAlertEvent{});
     sm->processEvent(EventEndedEvent{});
     EXPECT_TRUE(std::holds_alternative<NoAlerts>(sm->getState()));
@@ -113,7 +110,7 @@ TEST_F(StateMachineTest, RedAlertToNoAlerts) {
 }
 
 TEST_F(StateMachineTest, EarlyWarningToNoAlerts) {
-    sm->processEvent(WifiConnected{});
+    sm->processEvent(WifiConnectedEvent{});
     sm->processEvent(EarlyWarningEvent{});
     sm->processEvent(EventEndedEvent{});
     EXPECT_TRUE(std::holds_alternative<NoAlerts>(sm->getState()));
@@ -123,7 +120,7 @@ TEST_F(StateMachineTest, EarlyWarningToNoAlerts) {
 }
 
 TEST_F(StateMachineTest, StayInState) {
-    sm->processEvent(WifiConnected{});
+    sm->processEvent(WifiConnectedEvent{});
     int countBefore = transitionCount;
     sm->processEvent(NoAlertsEvent{});
     EXPECT_TRUE(std::holds_alternative<NoAlerts>(sm->getState()));
@@ -131,9 +128,9 @@ TEST_F(StateMachineTest, StayInState) {
 }
 
 TEST_F(StateMachineTest, InvalidTransition) {
-    sm->processEvent(WifiConnected{});
+    sm->processEvent(WifiConnectedEvent{});
     int countBefore = transitionCount;
-    sm->processEvent(WifiConnected{}); // Already connected
+    sm->processEvent(WifiConnectedEvent{}); // Already connected
     EXPECT_TRUE(std::holds_alternative<NoAlerts>(sm->getState()));
     EXPECT_EQ(transitionCount, countBefore);
 }

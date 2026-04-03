@@ -4,6 +4,7 @@
 RedAlertStateMachine::RedAlertStateMachine(TransitionCallback callback)
     : currentState(Initialization{}), onTransition(callback) {}
 
+
 void RedAlertStateMachine::processEvent(const Event& event) {
     auto visitor = [this](auto&& s, auto&& e) -> State {
         return transition(s, e);
@@ -18,12 +19,13 @@ void RedAlertStateMachine::processEvent(const Event& event) {
     }
 }
 
+
 const State& RedAlertStateMachine::getState() const {
     return currentState;
 }
 
-// Specific transitions implementation
-State RedAlertStateMachine::transition(Initialization, WifiConnected) { return NoAlerts{}; }
+
+State RedAlertStateMachine::transition(Initialization, WifiConnectedEvent) { return NoAlerts{}; }
 
 State RedAlertStateMachine::transition(NoAlerts, NoAlertsEvent) { return NoAlerts{}; }
 State RedAlertStateMachine::transition(NoAlerts, RemoteAlertEvent) { return YellowAlert{}; }

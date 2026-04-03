@@ -3,9 +3,7 @@
 
 #include <variant>
 #include <functional>
-#include <iostream>
 
-// States
 struct Initialization {};
 struct NoAlerts {};
 struct YellowAlert {};
@@ -14,8 +12,7 @@ struct RedAlert {};
 
 using State = std::variant<Initialization, NoAlerts, YellowAlert, EarlyWarning, RedAlert>;
 
-// Events
-struct WifiConnected {};
+struct WifiConnectedEvent {};
 struct NoAlertsEvent {};
 struct RemoteAlertEvent {};
 struct EarlyWarningEvent {};
@@ -23,7 +20,7 @@ struct RedAlertEvent {};
 struct EventEndedEvent {};
 struct ErrorEvent {};
 
-using Event = std::variant<WifiConnected, NoAlertsEvent, RemoteAlertEvent, EarlyWarningEvent, RedAlertEvent, EventEndedEvent, ErrorEvent>;
+using Event = std::variant<WifiConnectedEvent, NoAlertsEvent, RemoteAlertEvent, EarlyWarningEvent, RedAlertEvent, EventEndedEvent, ErrorEvent>;
 
 class RedAlertStateMachine {
 public:
@@ -39,14 +36,12 @@ private:
     State currentState;
     TransitionCallback onTransition;
 
-    // Default: stay in current state
     template<typename S, typename E>
     State transition(S, E) {
         return currentState;
     }
 
-    // Specific transitions
-    State transition(Initialization, WifiConnected);
+    State transition(Initialization, WifiConnectedEvent);
     
     State transition(NoAlerts, NoAlertsEvent);
     State transition(NoAlerts, RemoteAlertEvent);

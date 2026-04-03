@@ -17,8 +17,7 @@ void setup()
 void loop()
 {
     // Run tests
-    if (RUN_ALL_TESTS())
-        ;
+    if (RUN_ALL_TESTS()) {}
 
     // sleep for 1 sec
     delay(1000);
@@ -31,8 +30,7 @@ int main(int argc, char **argv)
     // if you plan to use GMock, replace the line above with
     // ::testing::InitGoogleMock(&argc, argv);
 
-    if (RUN_ALL_TESTS())
-        ;
+    if (RUN_ALL_TESTS()) {}
 
     // Always return zero-code and allow PlatformIO to parse results
     return 0;
