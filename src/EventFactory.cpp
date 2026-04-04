@@ -1,5 +1,9 @@
 #include "EventFactory.h"
 
+constexpr auto RED_ALERT_CATEGORY{"1"};
+constexpr auto EARLY_WARNING_CATEGORY{"14"};
+constexpr auto EVENT_ENDED_CATEGORY{"10"};
+
 EventFactory::EventFactory(const std::string &city) : city{city} {
 }
 
@@ -15,7 +19,32 @@ bool EventFactory::foundCity(JsonDocument& doc) const {
     return false;
 }
 
-Event EventFactory::createEvent(const std::string &alerts_json) {
+
+Event EventFactory::handleRedAlert(JsonDocument& doc) const {
+    if (foundCity(doc)) {
+        return RedAlertEvent{};
+    }
+
+    return DistantAlertEvent{};
+}
+
+Event EventFactory::handleEarlyWarning(JsonDocument& doc) const {
+    if (foundCity(doc)) {
+        return EarlyWarningEvent{};
+    }
+
+    return NoAlertsEvent{};
+}
+
+Event EventFactory::handleEventEnded(JsonDocument& doc) const {
+    if (foundCity(doc)) {
+        return EventEndedEvent{};
+    }
+
+    return NoAlertsEvent{};
+}
+
+Event EventFactory::createEvent(const std::string& alerts_json) const {
     if (alerts_json == "error") {
         return ErrorEvent{};
     }
@@ -26,29 +55,18 @@ Event EventFactory::createEvent(const std::string &alerts_json) {
 
     JsonDocument doc{};
     deserializeJson(doc, alerts_json);
+    const auto alert_category = doc["cat"].as<std::string>();
 
-    if (doc["cat"].as<std::string>() == "1") {
-        if (foundCity(doc)) {
-            return RedAlertEvent{};
-        }
-
-        return DistantAlertEvent{};
+    if (alert_category == RED_ALERT_CATEGORY) {
+        return handleRedAlert(doc);
     }
 
-    if (doc["cat"].as<std::string>() == "14") {
-        if (foundCity(doc)) {
-            return EarlyWarningEvent{};
-        }
-
-        return NoAlertsEvent{};
+    if (alert_category == EARLY_WARNING_CATEGORY) {
+        return handleEarlyWarning(doc);
     }
 
-    if (doc["cat"].as<std::string>() == "10") {
-        if (foundCity(doc)) {
-            return EventEndedEvent{};
-        }
-
-        return NoAlertsEvent{};
+    if (alert_category == EVENT_ENDED_CATEGORY) {
+        return handleEventEnded(doc);
     }
 
     return NoAlertsEvent{};

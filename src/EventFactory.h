@@ -9,10 +9,14 @@ class EventFactory {
     public:
         EventFactory(const std::string& city);
 
-        Event createEvent(const std::string& alerts_json);
+        Event createEvent(const std::string& alerts_json) const;
 
     private:
         bool foundCity(JsonDocument& doc) const;
+        Event handleRedAlert(JsonDocument& doc) const;
+        Event handleEarlyWarning(JsonDocument& doc) const;
+        Event handleEventEnded(JsonDocument& doc) const;
+
         std::string city;
 };
 
