@@ -8,6 +8,7 @@
 #include "ConfigurationManager.h"
 #include "EventFactory.h"
 #include "RedAlertStateMachine.h"
+#include "Scheduler.h"
 
 class RedAlertManager : public Device {
     public:
@@ -28,6 +29,24 @@ class RedAlertManager : public Device {
         ConfigurationManager configuration_manager{};
         RedAlertStateMachine state_machine{};
         EventFactory event_factory{};
+        Scheduler scheduler{};
+        std::optional<SchedulerTaskId> alerts_json_request_task_id{};
+        std::optional<SchedulerTaskId> connecting_wifi_task{};
+        std::optional<SchedulerTaskId> led_task{};
+
+        static void requestAlertsJsonCallback(void *context);
+        void requestAlertsJson();
+
+        static void connectingWifiCallback(void *context);
+        void connectingWifi();
+
+        static void httpServerHandleClientCallback(void *context);
+        void httpServerHandleClient();
+
+        static void connectingWifiBlinkCallback(void *context);
+        void connectingWifiBlink();
+
+        void resetLeds() const;
 };
 
 

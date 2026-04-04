@@ -26,6 +26,7 @@ class RedAlertStateMachine {
 public:
     using TransitionCallback = std::function<void(const State&, const State&)>;
 
+    // Single transition callback is not ideal but we can live with it.
     RedAlertStateMachine(TransitionCallback callback = nullptr);
 
     void processEvent(const Event& event);
