@@ -24,6 +24,8 @@ void RedAlertManager::begin() {
         Serial.println("Connecting");
         Serial.println("SSID: " + String(configuration.ssid.value()));
         Serial.println("Password: " + String(configuration.password.value_or("")));
+
+        Serial.println("City: " + String(configuration.cityName.value_or("")));
     } else {
         WiFi.begin();
         WiFi.softAP("RED_ALERT_32", "");
@@ -42,7 +44,7 @@ void RedAlertManager::begin() {
     constexpr auto CONNECTING_WIFI_INTERVAL_MS{500};
     connecting_wifi_task = scheduler.addPeriodicTask({connectingWifiCallback, this}, CONNECTING_WIFI_INTERVAL_MS);
 
-    constexpr auto CONNECTING_WIFI_BLINK_INTERVAL_MS{100};
+    constexpr auto CONNECTING_WIFI_BLINK_INTERVAL_MS{200};
     led_task= scheduler.addPeriodicTask({connectingWifiBlinkCallback, this}, CONNECTING_WIFI_BLINK_INTERVAL_MS);
 }
 
@@ -86,15 +88,7 @@ void RedAlertManager::requestAlertsJson() {
 
     Serial.println(payload);
     const auto event = event_factory.createEvent(payload.c_str());
-
-    if (std::holds_alternative<NoAlertsEvent>(event)) {
-        yellow_led.turnOff();
-        green_led.turnOn();
-        red_led.turnOff();
-    } else if (std::holds_alternative<DistantAlertEvent>(event)) {
-        yellow_led.turnOn();
-        green_led.turnOff();
-    }
+    state_machine.processEvent(event);
 
     http.end();
 }
@@ -116,24 +110,6 @@ void RedAlertManager::connectingWifi() {
         Serial.print(".");
         return;
     }
-
-    Serial.print("Connected to WiFi network with IP Address: ");
-    Serial.println(WiFi.localIP());
-    scheduler.removeTask(connecting_wifi_task.value());
-    scheduler.removeTask(led_task.value());
-
-    web_server.begin();
-    web_server.setConfigurationCallback([this](const Configuration &config, bool reset) {
-        if (reset) {
-            this->configuration_manager.reset();
-        } else {
-            this->configuration_manager.writeConfiguration(config);
-        }
-        ESP.restart();
-    });
-
-    constexpr auto REQUEST_ALERTS_JSON_INTERVAL_MS{1000};
-    alerts_json_request_task_id = scheduler.addPeriodicTask({requestAlertsJsonCallback, this}, REQUEST_ALERTS_JSON_INTERVAL_MS);
 
     state_machine.processEvent(WifiConnectedEvent{});
 }
@@ -157,6 +133,100 @@ void RedAlertManager::connectingWifiBlink() {
     } else {
         red_led.turnOn();
         green_led.turnOn();
+    }
+
+    turned_on = !turned_on;
+}
+
+void RedAlertManager::stateTransitionCallback(const State &from, const State &to) {
+    if (std::holds_alternative<Initialization>(from) && std::holds_alternative<NoAlerts>(to)) {
+        Serial.print("Connected to WiFi network with IP Address: ");
+        Serial.println(WiFi.localIP());
+        scheduler.removeTask(connecting_wifi_task.value());
+        scheduler.removeTask(led_task.value());
+
+        web_server.begin();
+        web_server.setConfigurationCallback([this](const Configuration &config, bool reset) {
+            if (reset) {
+                this->configuration_manager.reset();
+            } else {
+                this->configuration_manager.writeConfiguration(config);
+            }
+            ESP.restart();
+        });
+
+        constexpr auto REQUEST_ALERTS_JSON_INTERVAL_MS{1000};
+        alerts_json_request_task_id = scheduler.addPeriodicTask({requestAlertsJsonCallback, this}, REQUEST_ALERTS_JSON_INTERVAL_MS);
+        led_task = scheduler.addPeriodicTask({greenLedOnCallback, this}, 1000);
+        return;
+    }
+
+    if (std::holds_alternative<NoAlerts>(to)) {
+        scheduler.removeTask(led_task.value());
+        resetLeds();
+        led_task = scheduler.addPeriodicTask({greenLedOnCallback, this}, 1000);
+        return;
+    }
+
+    if (std::holds_alternative<EarlyWarning>(to)) {
+        scheduler.removeTask(led_task.value());
+        resetLeds();
+        led_task = scheduler.addPeriodicTask({redLedOnCallback, this}, 1000);
+        return;
+    }
+
+    if (std::holds_alternative<YellowAlert>(to)) {
+        scheduler.removeTask(led_task.value());
+        resetLeds();
+        led_task = scheduler.addPeriodicTask({yellowLedOnCallback, this}, 1000);
+        return;
+    }
+
+    if (std::holds_alternative<RedAlert>(to)) {
+        scheduler.removeTask(led_task.value());
+        resetLeds();
+        led_task = scheduler.addPeriodicTask({redLedBlinkCallback, this}, 300);
+        return;
+    }
+}
+
+void RedAlertManager::greenLedOnCallback(void *context) {
+    static_cast<RedAlertManager*>(context)->greenLedOn();
+}
+
+void RedAlertManager::greenLedOn() {
+    resetLeds();
+    green_led.turnOn();
+}
+
+void RedAlertManager::yellowLedOnCallback(void *context) {
+    static_cast<RedAlertManager*>(context)->yellowLedOn();
+}
+
+void RedAlertManager::yellowLedOn() {
+    resetLeds();
+    yellow_led.turnOn();
+}
+
+void RedAlertManager::redLedOnCallback(void *context) {
+    static_cast<RedAlertManager*>(context)->redLedOn();
+}
+
+void RedAlertManager::redLedOn() {
+    resetLeds();
+    red_led.turnOn();
+}
+
+void RedAlertManager::redLedBlinkCallback(void *context) {
+    static_cast<RedAlertManager*>(context)->redLedBlink();
+}
+
+void RedAlertManager::redLedBlink() {
+    static auto turned_on{false};
+    resetLeds();
+
+    if (turned_on) {
+        red_led.turnOn();
     }
 
     turned_on = !turned_on;

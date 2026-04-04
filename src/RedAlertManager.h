@@ -27,9 +27,13 @@ class RedAlertManager : public Device {
 
         WebServerManager web_server{};
         ConfigurationManager configuration_manager{};
-        RedAlertStateMachine state_machine{};
         EventFactory event_factory{};
         Scheduler scheduler{};
+
+        RedAlertStateMachine state_machine{[this](const State& from, const State& to) {
+            this->stateTransitionCallback(from, to);
+        }};
+
         std::optional<SchedulerTaskId> alerts_json_request_task_id{};
         std::optional<SchedulerTaskId> connecting_wifi_task{};
         std::optional<SchedulerTaskId> led_task{};
@@ -45,6 +49,20 @@ class RedAlertManager : public Device {
 
         static void connectingWifiBlinkCallback(void *context);
         void connectingWifiBlink();
+
+        void stateTransitionCallback(const State& from, const State& to);
+
+        static void greenLedOnCallback(void *context);
+        void greenLedOn();
+
+        static void yellowLedOnCallback(void *context);
+        void yellowLedOn();
+
+        static void redLedOnCallback(void *context);
+        void redLedOn();
+
+        static void redLedBlinkCallback(void *context);
+        void redLedBlink();
 
         void resetLeds() const;
 };
