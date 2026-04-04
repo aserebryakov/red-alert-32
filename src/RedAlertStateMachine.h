@@ -14,13 +14,13 @@ using State = std::variant<Initialization, NoAlerts, YellowAlert, EarlyWarning, 
 
 struct WifiConnectedEvent {};
 struct NoAlertsEvent {};
-struct RemoteAlertEvent {};
+struct DistantAlertEvent {};
 struct EarlyWarningEvent {};
 struct RedAlertEvent {};
 struct EventEndedEvent {};
 struct ErrorEvent {};
 
-using Event = std::variant<WifiConnectedEvent, NoAlertsEvent, RemoteAlertEvent, EarlyWarningEvent, RedAlertEvent, EventEndedEvent, ErrorEvent>;
+using Event = std::variant<WifiConnectedEvent, NoAlertsEvent, DistantAlertEvent, EarlyWarningEvent, RedAlertEvent, EventEndedEvent, ErrorEvent>;
 
 class RedAlertStateMachine {
 public:
@@ -44,7 +44,7 @@ private:
     State transition(Initialization, WifiConnectedEvent);
     
     State transition(NoAlerts, NoAlertsEvent);
-    State transition(NoAlerts, RemoteAlertEvent);
+    State transition(NoAlerts, DistantAlertEvent);
     State transition(NoAlerts, EarlyWarningEvent);
     State transition(NoAlerts, RedAlertEvent);
 

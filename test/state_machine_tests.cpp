@@ -34,7 +34,7 @@ TEST_F(StateMachineTest, InitializationToNoAlerts) {
 
 TEST_F(StateMachineTest, NoAlertsToYellow) {
     sm->processEvent(WifiConnectedEvent{});
-    sm->processEvent(RemoteAlertEvent{});
+    sm->processEvent(DistantAlertEvent{});
     EXPECT_TRUE(std::holds_alternative<YellowAlert>(sm->getState()));
     EXPECT_EQ(transitionCount, 2);
     EXPECT_TRUE(std::holds_alternative<NoAlerts>(lastOldState));
@@ -43,7 +43,7 @@ TEST_F(StateMachineTest, NoAlertsToYellow) {
 
 TEST_F(StateMachineTest, YellowToNoAlerts) {
     sm->processEvent(WifiConnectedEvent{});
-    sm->processEvent(RemoteAlertEvent{});
+    sm->processEvent(DistantAlertEvent{});
     sm->processEvent(NoAlertsEvent{});
     EXPECT_TRUE(std::holds_alternative<NoAlerts>(sm->getState()));
     EXPECT_EQ(transitionCount, 3);
@@ -53,7 +53,7 @@ TEST_F(StateMachineTest, YellowToNoAlerts) {
 
 TEST_F(StateMachineTest, YellowToEarlyWarning) {
     sm->processEvent(WifiConnectedEvent{});
-    sm->processEvent(RemoteAlertEvent{});
+    sm->processEvent(DistantAlertEvent{});
     sm->processEvent(EarlyWarningEvent{});
     EXPECT_TRUE(std::holds_alternative<EarlyWarning>(sm->getState()));
     EXPECT_EQ(transitionCount, 3);
@@ -63,7 +63,7 @@ TEST_F(StateMachineTest, YellowToEarlyWarning) {
 
 TEST_F(StateMachineTest, YellowToRedAlert) {
     sm->processEvent(WifiConnectedEvent{});
-    sm->processEvent(RemoteAlertEvent{});
+    sm->processEvent(DistantAlertEvent{});
     sm->processEvent(RedAlertEvent{});
     EXPECT_TRUE(std::holds_alternative<RedAlert>(sm->getState()));
     EXPECT_EQ(transitionCount, 3);

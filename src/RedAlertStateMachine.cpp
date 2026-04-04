@@ -28,7 +28,7 @@ const State& RedAlertStateMachine::getState() const {
 State RedAlertStateMachine::transition(Initialization, WifiConnectedEvent) { return NoAlerts{}; }
 
 State RedAlertStateMachine::transition(NoAlerts, NoAlertsEvent) { return NoAlerts{}; }
-State RedAlertStateMachine::transition(NoAlerts, RemoteAlertEvent) { return YellowAlert{}; }
+State RedAlertStateMachine::transition(NoAlerts, DistantAlertEvent) { return YellowAlert{}; }
 State RedAlertStateMachine::transition(NoAlerts, EarlyWarningEvent) { return EarlyWarning{}; }
 State RedAlertStateMachine::transition(NoAlerts, RedAlertEvent) { return RedAlert{}; }
 

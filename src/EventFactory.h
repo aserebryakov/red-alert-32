@@ -1,17 +1,19 @@
 #ifndef RED_ALERT_32_EVENTFACTORY_H
 #define RED_ALERT_32_EVENTFACTORY_H
 
-#include <WString.h>
-
+#include <string>
 #include "RedAlertStateMachine.h"
+#include <ArduinoJson.h>
 
 class EventFactory {
     public:
-        EventFactory(const String& city);
-        Event createEvent(const String& alerts_json);
+        EventFactory(const std::string& city);
+
+        Event createEvent(const std::string& alerts_json);
 
     private:
-        String city;
+        bool foundCity(JsonDocument& doc) const;
+        std::string city;
 };
 
 
