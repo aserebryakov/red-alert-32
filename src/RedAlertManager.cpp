@@ -17,6 +17,9 @@ void RedAlertManager::begin() {
     const auto configuration = configuration_manager.readConfiguration();
 
     if (configuration.ssid.value_or("") != "") {
+        // Using c_str() just to convert to std::string because String doesn't compile natively but
+        // we want to be able to write unit tests
+        event_factory.setCity(configuration.cityName.value_or("").c_str());
         WiFi.begin(configuration.ssid.value(), configuration.password.value_or(""));
         Serial.println("Connecting");
         Serial.println("SSID: " + String(configuration.ssid.value()));
@@ -98,26 +101,17 @@ void RedAlertManager::loop() {
         payload = payload.substring(start);
     }
 
-    JsonDocument doc;
-    deserializeJson(doc, payload);
-    String output;
-    serializeJson(doc, output);
+    Serial.println(payload);
+    const auto event = event_factory.createEvent(payload.c_str());
 
-    if (doc.isNull()) {
+    if (std::holds_alternative<NoAlertsEvent>(event)) {
         yellow_led.turnOff();
         green_led.turnOn();
         red_led.turnOff();
-    } else {
+    } else if (std::holds_alternative<DistantAlertEvent>(event)) {
         yellow_led.turnOn();
         green_led.turnOff();
     }
-
-    if (doc["cat"].as<String>() == "1") {
-        Serial.println(doc["cat"].as<String>());
-        red_led.turnOn();
-    }
-
-    Serial.print(output);
 
     http.end();
 }

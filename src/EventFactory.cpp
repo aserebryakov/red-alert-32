@@ -4,9 +4,6 @@ constexpr auto RED_ALERT_CATEGORY{"1"};
 constexpr auto EARLY_WARNING_CATEGORY{"14"};
 constexpr auto EVENT_ENDED_CATEGORY{"10"};
 
-EventFactory::EventFactory(const std::string &city) : city{city} {
-}
-
 
 bool EventFactory::foundCity(JsonDocument& doc) const {
     const auto& array = doc["data"].as<JsonArray>();
@@ -28,6 +25,7 @@ Event EventFactory::handleRedAlert(JsonDocument& doc) const {
     return DistantAlertEvent{};
 }
 
+
 Event EventFactory::handleEarlyWarning(JsonDocument& doc) const {
     if (foundCity(doc)) {
         return EarlyWarningEvent{};
@@ -36,6 +34,7 @@ Event EventFactory::handleEarlyWarning(JsonDocument& doc) const {
     return NoAlertsEvent{};
 }
 
+
 Event EventFactory::handleEventEnded(JsonDocument& doc) const {
     if (foundCity(doc)) {
         return EventEndedEvent{};
@@ -43,6 +42,12 @@ Event EventFactory::handleEventEnded(JsonDocument& doc) const {
 
     return NoAlertsEvent{};
 }
+
+
+void EventFactory::setCity(const std::string& _city) {
+    city = _city;
+}
+
 
 Event EventFactory::createEvent(const std::string& alerts_json) const {
     if (alerts_json == "error") {

@@ -6,6 +6,7 @@
 #include <HwApiImpl.h>
 #include <WebServerManager.h>
 #include "ConfigurationManager.h"
+#include "EventFactory.h"
 #include "RedAlertStateMachine.h"
 
 class RedAlertManager : public Device {
@@ -26,6 +27,7 @@ class RedAlertManager : public Device {
         WebServerManager web_server{};
         ConfigurationManager configuration_manager{};
         RedAlertStateMachine state_machine{};
+        EventFactory event_factory{};
 };
 
 

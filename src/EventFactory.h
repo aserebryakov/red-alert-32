@@ -7,7 +7,8 @@
 
 class EventFactory {
     public:
-        EventFactory(const std::string& city);
+        EventFactory() = default;
+        void setCity(const std::string& city);
 
         Event createEvent(const std::string& alerts_json) const;
 
@@ -17,7 +18,7 @@ class EventFactory {
         Event handleEarlyWarning(JsonDocument& doc) const;
         Event handleEventEnded(JsonDocument& doc) const;
 
-        std::string city;
+        std::string city{};
 };
 
 

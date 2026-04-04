@@ -3,11 +3,14 @@
 
 class EventFactoryTest: public ::testing::Test {
     protected:
-        EventFactory under_test{"תל אביב"};
+        void SetUp() override {
+            under_test.setCity("תל אביב");
+        }
+        EventFactory under_test{};
 };
 
 TEST(EventFactory, Initialization) {
-    EventFactory factory("Tel Aviv");
+    EventFactory factory{};
 }
 
 TEST_F(EventFactoryTest, NoAlertsEvent) {
