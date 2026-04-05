@@ -1,5 +1,9 @@
 #include "RedAlertStateMachine.h"
 
+#include <HardwareSerial.h>
+#include <iostream>
+#include <ostream>
+
 
 RedAlertStateMachine::RedAlertStateMachine(TransitionCallback callback)
     : currentState(Initialization{}), onTransition(callback) {}
@@ -9,6 +13,7 @@ void RedAlertStateMachine::processEvent(const Event& event) {
     auto visitor = [this](auto&& s, auto&& e) -> State {
         return transition(s, e);
     };
+
     State nextState = std::visit(visitor, currentState, event);
 
     if (nextState.index() != currentState.index()) {

@@ -24,22 +24,31 @@ void RedAlertManager::begin() {
         Serial.println("Connecting");
         Serial.println("SSID: " + String(configuration.ssid.value()));
         Serial.println("Password: " + String(configuration.password.value_or("")));
-
         Serial.println("City: " + String(configuration.cityName.value_or("")));
     } else {
         WiFi.begin();
         WiFi.softAP("RED_ALERT_32", "");
         WiFi.softAPConfig({192, 168, 1, 42}, {192, 168, 1, 1}, {255, 255, 255, 0});
+
         Serial.println(WiFi.softAPIP());
+        web_server.begin();
+        web_server.setConfigurationCallback([this](const Configuration &config, bool reset) {
+            if (reset) {
+                this->configuration_manager.reset();
+            } else {
+                this->configuration_manager.writeConfiguration(config);
+            }
+            delay(1000);
+            ESP.restart();
+        });
+
+        while (true) {
+            delay(10);
+            web_server.loop();
+        }
     }
 
 
-    // if (configuration.ssid.value_or("") == "") {
-    //     while (true) {
-    //         delay(10);
-    //         web_server.loop();
-    //     }
-    // }
 
     constexpr auto CONNECTING_WIFI_INTERVAL_MS{500};
     connecting_wifi_task = scheduler.addPeriodicTask({connectingWifiCallback, this}, CONNECTING_WIFI_INTERVAL_MS);
@@ -88,6 +97,8 @@ void RedAlertManager::requestAlertsJson() {
 
     Serial.println(payload);
     const auto event = event_factory.createEvent(payload.c_str());
+    Serial.print("Event: ");
+    Serial.println(event.index());
     state_machine.processEvent(event);
 
     http.end();
@@ -139,6 +150,11 @@ void RedAlertManager::connectingWifiBlink() {
 }
 
 void RedAlertManager::stateTransitionCallback(const State &from, const State &to) {
+    Serial.print("State transition: ");
+    Serial.print(from.index());
+    Serial.print(" -> ");
+    Serial.println(to.index());
+
     if (std::holds_alternative<Initialization>(from) && std::holds_alternative<NoAlerts>(to)) {
         Serial.print("Connected to WiFi network with IP Address: ");
         Serial.println(WiFi.localIP());
@@ -158,10 +174,13 @@ void RedAlertManager::stateTransitionCallback(const State &from, const State &to
         constexpr auto REQUEST_ALERTS_JSON_INTERVAL_MS{1000};
         alerts_json_request_task_id = scheduler.addPeriodicTask({requestAlertsJsonCallback, this}, REQUEST_ALERTS_JSON_INTERVAL_MS);
         led_task = scheduler.addPeriodicTask({greenLedOnCallback, this}, 1000);
+        web_server_task = scheduler.addPeriodicTask({httpServerHandleClientCallback, this}, 10);
+        Serial.println("Switched to NoAlerts");
         return;
     }
 
     if (std::holds_alternative<NoAlerts>(to)) {
+        Serial.println("Switched to NoAlerts");
         scheduler.removeTask(led_task.value());
         resetLeds();
         led_task = scheduler.addPeriodicTask({greenLedOnCallback, this}, 1000);
@@ -169,6 +188,7 @@ void RedAlertManager::stateTransitionCallback(const State &from, const State &to
     }
 
     if (std::holds_alternative<EarlyWarning>(to)) {
+        Serial.println("Switched to EarlyWarning");
         scheduler.removeTask(led_task.value());
         resetLeds();
         led_task = scheduler.addPeriodicTask({redLedOnCallback, this}, 1000);
@@ -176,6 +196,7 @@ void RedAlertManager::stateTransitionCallback(const State &from, const State &to
     }
 
     if (std::holds_alternative<YellowAlert>(to)) {
+        Serial.println("Switched to YellowAlert");
         scheduler.removeTask(led_task.value());
         resetLeds();
         led_task = scheduler.addPeriodicTask({yellowLedOnCallback, this}, 1000);
@@ -183,6 +204,7 @@ void RedAlertManager::stateTransitionCallback(const State &from, const State &to
     }
 
     if (std::holds_alternative<RedAlert>(to)) {
+        Serial.println("Switched to RedAlert");
         scheduler.removeTask(led_task.value());
         resetLeds();
         led_task = scheduler.addPeriodicTask({redLedBlinkCallback, this}, 300);

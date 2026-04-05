@@ -36,6 +36,7 @@ class RedAlertManager : public Device {
 
         std::optional<SchedulerTaskId> alerts_json_request_task_id{};
         std::optional<SchedulerTaskId> connecting_wifi_task{};
+        std::optional<SchedulerTaskId> web_server_task{};
         std::optional<SchedulerTaskId> led_task{};
 
         static void requestAlertsJsonCallback(void *context);

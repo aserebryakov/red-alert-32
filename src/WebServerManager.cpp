@@ -99,18 +99,19 @@ void WebServerManager::handleRootGet() {
 
 void WebServerManager::handleRootPost() {
     Serial.println("POST /");
-    Configuration config;
-    bool resetFlag = false;
+    Configuration config{};
 
-    if (server.hasArg("SSID")) {
+    if (server.hasArg("SSID") && server.arg("SSID") != "") {
         config.ssid = server.arg("SSID");
     }
-    if (server.hasArg("Password")) {
+    if (server.hasArg("Password" ) && (server.arg("Password") != "")) {
         config.password = server.arg("Password");
     }
-    if (server.hasArg("City")) {
+    if (server.hasArg("City") && server.arg("City") != "") {
         config.cityName = server.arg("City");
     }
+
+    bool resetFlag = false;
     if (server.hasArg("Reset")) {
         resetFlag = (server.arg("Reset") == "on");
     }

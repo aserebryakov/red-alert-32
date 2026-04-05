@@ -38,10 +38,15 @@ bool ConfigurationManager::reset() const {
 }
 
 bool ConfigurationManager::writeField(size_t offset, const std::optional<String> &field) const {
+    Serial.print("Field ");
+    Serial.print(offset);
+
     if (!field.has_value()) {
+        Serial.println(" has no value and will not be changed");
         return true;
     }
 
+    Serial.println(" has value: " + *field);
     EEPROM.write(offset, 1);
     const String value = *field;
     const size_t len = value.length();
