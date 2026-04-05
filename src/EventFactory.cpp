@@ -1,6 +1,7 @@
 #include "EventFactory.h"
 
 constexpr auto RED_ALERT_CATEGORY{"1"};
+constexpr auto DRONE_ALERT_CATEGORY{"6"};
 constexpr auto EARLY_WARNING_CATEGORY{"14"};
 constexpr auto EVENT_ENDED_CATEGORY{"10"};
 
@@ -62,7 +63,7 @@ Event EventFactory::createEvent(const std::string& alerts_json) const {
     deserializeJson(doc, alerts_json);
     const auto alert_category = doc["cat"].as<std::string>();
 
-    if (alert_category == RED_ALERT_CATEGORY) {
+    if (alert_category == RED_ALERT_CATEGORY || alert_category == DRONE_ALERT_CATEGORY) {
         return handleRedAlert(doc);
     }
 

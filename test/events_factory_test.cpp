@@ -52,6 +52,30 @@ TEST_F(EventFactoryTest, RedAlertEvent) {
     EXPECT_TRUE(std::holds_alternative<RedAlertEvent>(event));
 }
 
+TEST_F(EventFactoryTest, DistantDroneAlertEvent) {
+    const auto alert_json = R"(
+    {
+        "cat": "6",
+        "data": [
+          "יראון"
+        ]
+    })";
+    const auto event{under_test.createEvent(alert_json)};
+    EXPECT_TRUE(std::holds_alternative<DistantAlertEvent>(event));
+}
+
+TEST_F(EventFactoryTest, DroneAlertEvent) {
+    const auto alert_json = R"(
+    {
+        "cat": "6",
+        "data": [
+          "תל אביב"
+        ]
+    })";
+    const auto event{under_test.createEvent(alert_json)};
+    EXPECT_TRUE(std::holds_alternative<RedAlertEvent>(event));
+}
+
 TEST_F(EventFactoryTest, EarlyWarningEvent) {
     const auto alert_json = R"(
     {
