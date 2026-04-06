@@ -2,7 +2,7 @@
 #include <WiFi.h>
 #include <Arduino.h>
 #include <HTTPClient.h>
-#include <ArduinoJson.h>
+#include <ESPmDNS.h>
 
 String HOST_NAME   = "https://www.oref.org.il";
 String PATH_NAME   = "/warningMessages/alert/Alerts.json";
@@ -25,6 +25,7 @@ void RedAlertManager::begin() {
         Serial.println("SSID: " + String(configuration.ssid.value()));
         Serial.println("Password: " + String(configuration.password.value_or("")));
         Serial.println("City: " + String(configuration.cityName.value_or("")));
+
     } else {
         WiFi.begin();
         WiFi.softAP("RED_ALERT_32", "");
@@ -42,6 +43,14 @@ void RedAlertManager::begin() {
             ESP.restart();
         });
 
+        if (!MDNS.begin("red-alert-32")) {   // Set the hostname to "esp32.local"
+            Serial.println("Error setting up MDNS responder!");
+            while(true) {
+                delay(1000);
+            }
+        }
+        Serial.println("MDNS responter is running");
+
         while (true) {
             delay(10);
             web_server.loop();
@@ -58,7 +67,7 @@ void RedAlertManager::begin() {
 }
 
 void RedAlertManager::loop() {
-    constexpr auto LOOP_CYCLE_MS = 100;
+    constexpr auto LOOP_CYCLE_MS = 10;
     delay(LOOP_CYCLE_MS);
     scheduler.tick(LOOP_CYCLE_MS);
 }
@@ -95,7 +104,7 @@ void RedAlertManager::requestAlertsJson() {
         payload = payload.substring(start);
     }
 
-    Serial.println(payload);
+    // Serial.println(payload);
     const auto event = event_factory.createEvent(payload.c_str());
     Serial.print("Event: ");
     Serial.println(event.index());
@@ -170,6 +179,14 @@ void RedAlertManager::stateTransitionCallback(const State &from, const State &to
             }
             ESP.restart();
         });
+
+        if (!MDNS.begin("red-alert-32")) {
+            Serial.println("Error setting up MDNS responder!");
+            while(true) {
+                delay(1000);
+            }
+        }
+        Serial.println("MDNS responter is running");
 
         constexpr auto REQUEST_ALERTS_JSON_INTERVAL_MS{1000};
         alerts_json_request_task_id = scheduler.addPeriodicTask({requestAlertsJsonCallback, this}, REQUEST_ALERTS_JSON_INTERVAL_MS);
